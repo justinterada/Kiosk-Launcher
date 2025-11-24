@@ -37,7 +37,7 @@ class KioskUtil {
                 devicePolicyManager.addPersistentPreferredActivity(myDeviceAdmin, filter, activity)
 
                 //
-                val appsWhiteList = arrayOf("com.osamaalek.kiosklauncher")
+                val appsWhiteList = arrayOf("com.osamaalek.kiosklauncher", "org.videolan.vlc", "com.softwinner.videoplayer")
                 devicePolicyManager.setLockTaskPackages(myDeviceAdmin, appsWhiteList)
 
                 devicePolicyManager.addUserRestriction(

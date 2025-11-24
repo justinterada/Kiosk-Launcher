@@ -14,6 +14,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var fabApps: FloatingActionButton
     private lateinit var imageButtonExit: ImageButton
+    private lateinit var imageButtonLock: ImageButton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -23,6 +24,7 @@ class HomeFragment : Fragment() {
 
         fabApps = v.findViewById(R.id.floatingActionButton)
         imageButtonExit = v.findViewById(R.id.imageButton_exit)
+        imageButtonLock = v.findViewById(R.id.imageButton_lock)
 
         fabApps.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
@@ -31,6 +33,10 @@ class HomeFragment : Fragment() {
 
         imageButtonExit.setOnClickListener {
             KioskUtil.stopKioskMode(requireActivity())
+        }
+
+        imageButtonLock.setOnClickListener {
+            KioskUtil.startKioskMode(requireActivity())
         }
 
         return v

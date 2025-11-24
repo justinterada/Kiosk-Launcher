@@ -18,12 +18,16 @@ class AppsUtil {
             i.addCategory(Intent.CATEGORY_LAUNCHER)
             val allApps = packageManager.queryIntentActivities(i, 0)
             for (ri in allApps) {
-                val app = AppInfo(
-                    ri.loadLabel(packageManager),
-                    ri.activityInfo.packageName,
-                    ri.activityInfo.loadIcon(packageManager)
-                )
-                appsList.add(app)
+                val label = ri.loadLabel(packageManager)
+                if (label == "VLC" || label == "Videos")
+                {
+                    val app = AppInfo(
+                        ri.loadLabel(packageManager),
+                        ri.activityInfo.packageName,
+                        ri.activityInfo.loadIcon(packageManager)
+                    )
+                    appsList.add(app)
+                }
             }
             return appsList
         }
