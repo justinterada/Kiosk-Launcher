@@ -32,20 +32,4 @@ class AppsListFragment : Fragment() {
         return view
     }
 
-    override fun onAttach(context: Context) : Unit {
-        super.onAttach(context)
-        val callback = object : OnBackPressedCallback(
-            true // default to enabled
-        ) {
-            override fun handleOnBackPressed() {
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragmentContainerView, HomeFragment()).commit()
-            }
-        }
-        requireActivity().onBackPressedDispatcher.addCallback(
-            this, // LifecycleOwner
-            callback
-        )
-    }
-
 }

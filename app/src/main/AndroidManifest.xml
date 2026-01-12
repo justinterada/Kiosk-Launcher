@@ -34,6 +34,20 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:label="Settings"
+            android:parentActivityName=".ui.MainActivity"
+            android:exported="false"
+            android:lockTaskMode="if_whitelisted"/>
+
+        <activity
+            android:name=".ui.AppWhitelistActivity"
+            android:label="Manage Apps"
+            android:parentActivityName=".ui.SettingsActivity"
+            android:exported="false"
+            android:lockTaskMode="if_whitelisted"/>
+
         <receiver
             android:name=".MyDeviceAdminReceiver"
             android:exported="true"
