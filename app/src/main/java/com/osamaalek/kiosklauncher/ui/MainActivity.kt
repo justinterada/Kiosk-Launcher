@@ -14,8 +14,4 @@ class MainActivity : AppCompatActivity() {
         KioskUtil.startKioskMode(this)
     }
 
-    override fun onBackPressed() {
-        if (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) is AppsListFragment) supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainerView, HomeFragment()).commit()
-    }
 }

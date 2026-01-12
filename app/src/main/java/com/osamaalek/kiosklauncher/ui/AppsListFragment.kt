@@ -1,9 +1,11 @@
 package com.osamaalek.kiosklauncher.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,6 +30,22 @@ class AppsListFragment : Fragment() {
         recyclerView.adapter = AppsAdapter(AppsUtil.getAllApps(requireContext()), requireContext())
 
         return view
+    }
+
+    override fun onAttach(context: Context) : Unit {
+        super.onAttach(context)
+        val callback = object : OnBackPressedCallback(
+            true // default to enabled
+        ) {
+            override fun handleOnBackPressed() {
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainerView, HomeFragment()).commit()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(
+            this, // LifecycleOwner
+            callback
+        )
     }
 
 }
