@@ -28,7 +28,6 @@ class KioskPreferences(context: Context) {
         private const val KEY_IS_LOCKED = "is_locked"
         private const val KEY_ALLOWED_APPS = "allowed_apps"
         private const val KEY_LOCK_TIMEOUT = "lock_timeout"
-        private const val KEY_DEFAULT_MEDIA_PLAYER = "default_media_player"
         private const val DEFAULT_PIN = "0000"
     }
 
@@ -47,10 +46,6 @@ class KioskPreferences(context: Context) {
     var lockTimeoutMinutes: Int
         get() = prefs.getInt(KEY_LOCK_TIMEOUT, 5) // 5 minutes default
         set(value) = prefs.edit().putInt(KEY_LOCK_TIMEOUT, value).apply()
-
-    var defaultMediaPlayer: String?
-        get() = prefs.getString(KEY_DEFAULT_MEDIA_PLAYER, null)
-        set(value) = prefs.edit().putString(KEY_DEFAULT_MEDIA_PLAYER, value).apply()
 
     fun isAppAllowed(packageName: String): Boolean {
         val allowed = allowedApps
