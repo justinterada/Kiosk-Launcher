@@ -1,7 +1,14 @@
+// ============================================================================
+// Updated SettingsActivity.kt - With Android Settings button
+// Location: app/src/main/java/com/osamaalek/kiosklauncher/ui/SettingsActivity.kt
+// REPLACE YOUR CURRENT FILE WITH THIS
+// ============================================================================
+
 package com.osamaalek.kiosklauncher.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -14,9 +21,9 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var kioskPrefs: KioskPreferences
     private lateinit var etPin: EditText
     private lateinit var etTimeout: EditText
-    private lateinit var etMediaPlayer: EditText
     private lateinit var btnSave: Button
     private lateinit var btnManageApps: Button
+    private lateinit var btnAndroidSettings: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,9 +33,9 @@ class SettingsActivity : AppCompatActivity() {
 
         etPin = findViewById(R.id.etPin)
         etTimeout = findViewById(R.id.etTimeout)
-        etMediaPlayer = findViewById(R.id.etMediaPlayer)
         btnSave = findViewById(R.id.btnSave)
         btnManageApps = findViewById(R.id.btnManageApps)
+        btnAndroidSettings = findViewById(R.id.btnAndroidSettings)
 
         loadSettings()
 
@@ -40,18 +47,20 @@ class SettingsActivity : AppCompatActivity() {
             val intent = Intent(this, AppWhitelistActivity::class.java)
             startActivity(intent)
         }
+
+        btnAndroidSettings.setOnClickListener {
+            openAndroidSettings()
+        }
     }
 
     private fun loadSettings() {
         etPin.setText(kioskPrefs.pin)
         etTimeout.setText(kioskPrefs.lockTimeoutMinutes.toString())
-        etMediaPlayer.setText(kioskPrefs.defaultMediaPlayer ?: "")
     }
 
     private fun saveSettings() {
         val newPin = etPin.text.toString()
         val timeout = etTimeout.text.toString().toIntOrNull() ?: 5
-        val mediaPlayer = etMediaPlayer.text.toString()
 
         if (newPin.length < 4) {
             Toast.makeText(this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT).show()
@@ -60,9 +69,19 @@ class SettingsActivity : AppCompatActivity() {
 
         kioskPrefs.pin = newPin
         kioskPrefs.lockTimeoutMinutes = timeout
-        kioskPrefs.defaultMediaPlayer = mediaPlayer.ifEmpty { null }
 
         Toast.makeText(this, "Settings saved", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    private fun openAndroidSettings() {
+        try {
+            // Open main Android Settings
+            val intent = Intent(Settings.ACTION_SETTINGS)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open Android Settings", Toast.LENGTH_SHORT).show()
+        }
     }
 }

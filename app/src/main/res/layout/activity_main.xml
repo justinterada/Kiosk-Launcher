@@ -1,48 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:background="#F5F5F5">
 
-    <!-- Lock/Unlock Button -->
-    <Button
-        android:id="@+id/btnLockUnlock"
+    <!-- Scrollable app grid -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🔒 Unlock"
-        android:textSize="18sp"
-        android:padding="16dp"
-        android:layout_marginBottom="16dp"/>
+        android:layout_height="match_parent"
+        android:padding="16dp">
 
-    <!-- Settings Button -->
-    <ImageButton
-        android:id="@+id/btnSettings"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:src="@android:drawable/ic_menu_preferences"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Settings"
-        android:layout_marginBottom="32dp"/>
+        <GridLayout
+            android:id="@+id/appGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="4"
+            android:alignmentMode="alignMargins"
+            android:columnOrderPreserved="false"
+            android:useDefaultMargins="true" />
 
-    <!-- Launch Media Player Button -->
-    <Button
-        android:id="@+id/btnLaunchApp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="▶️ Launch Media Player"
-        android:textSize="24sp"
-        android:padding="24dp"
-        android:layout_marginBottom="16dp"/>
+    </ScrollView>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Kiosk Mode Active"
-        android:textSize="16sp"
-        android:textColor="#666"
-        android:layout_marginTop="32dp"/>
+    <!-- Hidden unlock area - tap 5 times in top-right corner -->
+    <View
+        android:id="@+id/unlockArea"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:background="@android:color/transparent" />
 
-</LinearLayout>
+</RelativeLayout>

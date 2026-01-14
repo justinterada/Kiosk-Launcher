@@ -1,11 +1,27 @@
+// ============================================================================
+// Updated MainActivity.kt - No Bluetooth restriction, exit kiosk when unlocked
+// Location: app/src/main/java/com/osamaalek/kiosklauncher/ui/MainActivity.kt
+// REPLACE YOUR CURRENT FILE WITH THIS
+// ============================================================================
+
 package com.osamaalek.kiosklauncher.ui
 
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Button
-import android.widget.ImageButton
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.GridLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -16,22 +32,31 @@ import com.osamaalek.kiosklauncher.util.KioskPreferences
 class MainActivity : AppCompatActivity() {
 
     private lateinit var kioskPrefs: KioskPreferences
-    private lateinit var btnLockUnlock: Button
-    private lateinit var btnSettings: ImageButton
-    private lateinit var btnLaunchApp: Button
+    private lateinit var appGrid: GridLayout
+    private lateinit var unlockArea: View
 
     private val autoLockHandler = Handler(Looper.getMainLooper())
     private var autoLockRunnable: Runnable? = null
 
+    private var wifiManager: WifiManager? = null
+    private var wasWifiEnabled = false
+
+    private var devicePolicyManager: DevicePolicyManager? = null
+    private var adminComponent: ComponentName? = null
+
+    // Hidden unlock gesture detection
+    private var unlockTapCount = 0
+    private val unlockTapHandler = Handler(Looper.getMainLooper())
+
     // Modern back button handling
     private val backPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            // Only allow back press when unlocked
+            // When locked, do nothing (prevents exit)
+            // When unlocked, allow exit to normal Android
             if (!kioskPrefs.isLocked) {
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
+                // Exit kiosk mode when unlocked
+                finish()
             }
-            // When locked, do nothing (prevents back navigation)
         }
     }
 
@@ -40,68 +65,224 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         kioskPrefs = KioskPreferences(this)
+        wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+        devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as? DevicePolicyManager
+        adminComponent = ComponentName(this, com.osamaalek.kiosklauncher.MyDeviceAdminReceiver::class.java)
 
         // Register the modern back button handler
         onBackPressedDispatcher.addCallback(this, backPressedCallback)
 
         // Initialize views
-        btnLockUnlock = findViewById(R.id.btnLockUnlock)
-        btnSettings = findViewById(R.id.btnSettings)
-        btnLaunchApp = findViewById(R.id.btnLaunchApp)
+        appGrid = findViewById(R.id.appGrid)
+        unlockArea = findViewById(R.id.unlockArea)
 
-        updateLockUI()
-        setupClickListeners()
+        setupUnlockGesture()
+        updateUI()
 
-        // Start kiosk mode
-        KioskUtil.startKioskMode(this)
+        // Start kiosk mode only when locked
+        if (kioskPrefs.isLocked) {
+            KioskUtil.startKioskMode(this)
+            startLockTask()
+        }
     }
 
-    private fun setupClickListeners() {
-        btnLockUnlock.setOnClickListener {
-            if (kioskPrefs.isLocked) {
+    private fun setupUnlockGesture() {
+        // Hidden unlock: tap the unlock area 5 times quickly
+        unlockArea.setOnClickListener {
+            unlockTapCount++
+
+            if (unlockTapCount >= 5) {
+                unlockTapCount = 0
+                unlockTapHandler.removeCallbacksAndMessages(null)
                 showUnlockDialog()
             } else {
-                lockKiosk()
+                // Reset counter after 3 seconds if not completed
+                unlockTapHandler.removeCallbacksAndMessages(null)
+                unlockTapHandler.postDelayed({
+                    unlockTapCount = 0
+                }, 3000)
             }
-        }
-
-        btnSettings.setOnClickListener {
-            if (kioskPrefs.isLocked) {
-                Toast.makeText(this, "Unlock kiosk to access settings", Toast.LENGTH_SHORT).show()
-                showUnlockDialog()
-            } else {
-                openSettings()
-            }
-        }
-
-        btnLaunchApp.setOnClickListener {
-            launchMediaPlayer()
         }
     }
 
     private fun showUnlockDialog() {
+        if (!kioskPrefs.isLocked) {
+            // Already unlocked, go straight to settings
+            openSettings()
+            return
+        }
+
         UnlockDialog(this) {
-            updateLockUI()
-            scheduleAutoLock()
+            // On successful unlock, go straight to settings
+            openSettings()
         }.show()
+    }
+
+    private fun openSettings() {
+        val intent = Intent(this, SettingsActivity::class.java)
+        startActivityForResult(intent, REQUEST_SETTINGS)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_SETTINGS) {
+            // When returning from settings, immediately lock
+            lockKiosk()
+        }
     }
 
     private fun lockKiosk() {
         kioskPrefs.isLocked = true
-        updateLockUI()
+        updateUI()
         cancelAutoLock()
+
+        // Start lock task mode when locking
+        startLockTask()
+
         Toast.makeText(this, "Kiosk Locked", Toast.LENGTH_SHORT).show()
     }
 
-    private fun updateLockUI() {
+    private fun unlockKiosk() {
+        kioskPrefs.isLocked = false
+
+        // Stop lock task mode when unlocking
+        try {
+            if (devicePolicyManager?.isDeviceOwnerApp(packageName) == true) {
+                stopLockTask()
+            }
+        } catch (e: Exception) {
+            // If not in lock task mode, continue anyway
+        }
+
+        updateUI()
+    }
+
+    private fun updateUI() {
         if (kioskPrefs.isLocked) {
-            btnLockUnlock.text = "🔒 Unlock"
-            btnSettings.isEnabled = false
-            btnSettings.alpha = 0.3f
+            // Locked mode: show only allowed apps
+            loadAllowedApps()
+            disableWifi()
         } else {
-            btnLockUnlock.text = "🔓 Lock"
-            btnSettings.isEnabled = true
-            btnSettings.alpha = 1.0f
+            // Unlocked mode: show all apps, enable normal Android
+            loadAllApps()
+            enableWifi()
+            scheduleAutoLock()
+        }
+    }
+
+    private fun loadAllowedApps() {
+        appGrid.removeAllViews()
+
+        val allowedPackages = kioskPrefs.allowedApps
+        if (allowedPackages.isEmpty()) {
+            // If no apps configured, show a message
+            showEmptyMessage("No apps configured. Unlock to add apps.")
+            return
+        }
+
+        val apps = packageManager.getInstalledApplications(0)
+            .filter {
+                allowedPackages.contains(it.packageName) &&
+                        packageManager.getLaunchIntentForPackage(it.packageName) != null
+            }
+            .sortedBy { packageManager.getApplicationLabel(it).toString() }
+
+        if (apps.isEmpty()) {
+            showEmptyMessage("No allowed apps installed")
+            return
+        }
+
+        apps.forEach { app ->
+            addAppIcon(app)
+        }
+    }
+
+    private fun loadAllApps() {
+        appGrid.removeAllViews()
+
+        // Show ALL apps (system and user) when unlocked
+        val apps = packageManager.getInstalledApplications(0)
+            .filter {
+                // Show all apps that have a launcher intent
+                packageManager.getLaunchIntentForPackage(it.packageName) != null
+            }
+            .sortedBy { packageManager.getApplicationLabel(it).toString() }
+
+        if (apps.isEmpty()) {
+            showEmptyMessage("No apps found")
+            return
+        }
+
+        apps.forEach { app ->
+            addAppIcon(app)
+        }
+    }
+
+    private fun addAppIcon(app: ApplicationInfo) {
+        val iconView = layoutInflater.inflate(R.layout.item_app_icon, appGrid, false)
+        val icon = iconView.findViewById<ImageView>(R.id.appIcon)
+        val name = iconView.findViewById<TextView>(R.id.appName)
+
+        try {
+            icon.setImageDrawable(packageManager.getApplicationIcon(app))
+            name.text = packageManager.getApplicationLabel(app)
+
+            iconView.setOnClickListener {
+                launchApp(app.packageName)
+            }
+
+            appGrid.addView(iconView)
+        } catch (e: Exception) {
+            // Skip apps that cause errors
+        }
+    }
+
+    private fun showEmptyMessage(message: String) {
+        val textView = TextView(this).apply {
+            text = message
+            textSize = 18f
+            setPadding(32, 32, 32, 32)
+            gravity = android.view.Gravity.CENTER
+        }
+        appGrid.addView(textView)
+    }
+
+    private fun launchApp(packageName: String) {
+        // When locked, verify app is allowed
+        if (kioskPrefs.isLocked && !kioskPrefs.isAppAllowed(packageName)) {
+            Toast.makeText(this, "App not allowed", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val intent = packageManager.getLaunchIntentForPackage(packageName)
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Cannot launch app", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error launching app: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun disableWifi() {
+        wifiManager?.let { wifi ->
+            if (wifi.isWifiEnabled) {
+                wasWifiEnabled = true
+                @Suppress("DEPRECATION")
+                wifi.isWifiEnabled = false
+            }
+        }
+    }
+
+    private fun enableWifi() {
+        wifiManager?.let { wifi ->
+            if (wasWifiEnabled && !wifi.isWifiEnabled) {
+                @Suppress("DEPRECATION")
+                wifi.isWifiEnabled = true
+            }
         }
     }
 
@@ -126,37 +307,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun launchMediaPlayer() {
-        val mediaPlayerPackage = kioskPrefs.defaultMediaPlayer
-            ?: "org.videolan.vlc" // Default to VLC if not set
-
-        if (!kioskPrefs.isAppAllowed(mediaPlayerPackage)) {
-            Toast.makeText(this, "App not allowed", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        try {
-            val intent = packageManager.getLaunchIntentForPackage(mediaPlayerPackage)
-            if (intent != null) {
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Media player not found", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error launching app: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun openSettings() {
-        val intent = Intent(this, SettingsActivity::class.java)
-        startActivity(intent)
-    }
-
     override fun onResume() {
         super.onResume()
-        if (!kioskPrefs.isLocked) {
-            scheduleAutoLock()
-        }
+        updateUI()
     }
 
     override fun onPause() {
@@ -167,5 +320,10 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         cancelAutoLock()
+        unlockTapHandler.removeCallbacksAndMessages(null)
+    }
+
+    companion object {
+        private const val REQUEST_SETTINGS = 1001
     }
 }

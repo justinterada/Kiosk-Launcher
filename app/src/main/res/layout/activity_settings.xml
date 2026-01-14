@@ -59,22 +59,16 @@
             android:textColor="#666"
             android:layout_marginBottom="24dp"/>
 
-        <!-- Default Media Player -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Default Media Player Package"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
-
-        <EditText
-            android:id="@+id/etMediaPlayer"
+        <!-- Android Settings Button -->
+        <Button
+            android:id="@+id/btnAndroidSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="e.g. org.videolan.vlc"
-            android:layout_marginBottom="24dp"/>
+            android:text="🔧 Android Settings"
+            android:textSize="16sp"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            style="?attr/materialButtonOutlinedStyle"/>
 
         <!-- Manage Apps Button -->
         <Button
@@ -92,7 +86,7 @@
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="💾 Save Settings"
+            android:text="💾 Save Settings &amp; Lock"
             android:textSize="18sp"
             android:padding="16dp"/>
 

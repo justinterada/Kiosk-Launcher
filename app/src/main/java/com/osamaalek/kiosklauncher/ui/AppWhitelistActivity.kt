@@ -1,3 +1,9 @@
+// ============================================================================
+// Fixed AppWhitelistActivity.kt - All apps start UNCHECKED (disallowed)
+// Location: app/src/main/java/com/osamaalek/kiosklauncher/ui/AppWhitelistActivity.kt
+// REPLACE YOUR CURRENT FILE WITH THIS
+// ============================================================================
+
 package com.osamaalek.kiosklauncher.ui
 
 import android.content.pm.ApplicationInfo
@@ -31,11 +37,17 @@ class AppWhitelistActivity : AppCompatActivity() {
     }
 
     private fun loadInstalledApps() {
-        val apps = packageManager.getInstalledApplications(0)
-            .filter { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 } // Non-system apps only
-            .sortedBy { packageManager.getApplicationLabel(it).toString() }
+        // Get ALL apps that have a launcher intent (both system and user apps)
+        val allApps = packageManager.getInstalledApplications(0)
 
-        recyclerView.adapter = AppAdapter(apps, kioskPrefs)
+        val launchableApps = allApps.filter { app ->
+            // Only show apps that can actually be launched
+            packageManager.getLaunchIntentForPackage(app.packageName) != null
+        }.sortedBy {
+            packageManager.getApplicationLabel(it).toString()
+        }
+
+        recyclerView.adapter = AppAdapter(launchableApps, kioskPrefs)
     }
 
     inner class AppAdapter(
@@ -58,19 +70,37 @@ class AppWhitelistActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val app = apps[position]
-            holder.appIcon.setImageDrawable(packageManager.getApplicationIcon(app))
-            holder.appName.text = packageManager.getApplicationLabel(app)
-            holder.appPackage.text = app.packageName
-            holder.checkbox.isChecked = prefs.isAppAllowed(app.packageName)
 
-            holder.checkbox.setOnCheckedChangeListener { _, isChecked ->
-                val allowed = prefs.allowedApps.toMutableSet()
-                if (isChecked) {
-                    allowed.add(app.packageName)
-                } else {
-                    allowed.remove(app.packageName)
+            try {
+                holder.appIcon.setImageDrawable(packageManager.getApplicationIcon(app))
+                holder.appName.text = packageManager.getApplicationLabel(app)
+                holder.appPackage.text = app.packageName
+
+                // Get current allowed apps set
+                val allowedApps = prefs.allowedApps
+
+                // Apps are UNCHECKED by default (not in the allowed set)
+                holder.checkbox.isChecked = allowedApps.contains(app.packageName)
+
+                // Clear any previous listeners to avoid issues
+                holder.checkbox.setOnCheckedChangeListener(null)
+
+                // Update the allowed apps when checkbox changes
+                holder.checkbox.setOnCheckedChangeListener { _, isChecked ->
+                    val allowed = prefs.allowedApps.toMutableSet()
+                    if (isChecked) {
+                        // Add to allowed list
+                        allowed.add(app.packageName)
+                    } else {
+                        // Remove from allowed list
+                        allowed.remove(app.packageName)
+                    }
+                    prefs.allowedApps = allowed
                 }
-                prefs.allowedApps = allowed
+            } catch (e: Exception) {
+                // Handle any errors gracefully
+                holder.appName.text = app.packageName
+                holder.appPackage.text = "Error loading app info"
             }
         }
 
