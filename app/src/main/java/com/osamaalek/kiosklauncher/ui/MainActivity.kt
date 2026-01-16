@@ -22,6 +22,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.osamaalek.kiosklauncher.R
 import com.osamaalek.kiosklauncher.util.KioskPreferences
+import com.osamaalek.kiosklauncher.util.KioskUtil
 
 class MainActivity : AppCompatActivity() {
 
@@ -90,7 +91,11 @@ class MainActivity : AppCompatActivity() {
 
         // Start lock task only when locked
         if (kioskPrefs.isLocked) {
+            KioskUtil.startKioskMode(this)
             startLockTaskIfNeeded()
+        } else {
+            // Make sure UI is shown when unlocked
+            KioskUtil.stopKioskMode(this)
         }
     }
 
@@ -127,6 +132,9 @@ class MainActivity : AppCompatActivity() {
             // CRITICAL: Stop lock task BEFORE anything else
             stopLockTaskIfNeeded()
 
+            // CRITICAL: Restore system UI (status bar, navigation)
+            KioskUtil.stopKioskMode(this)
+
             // Update UI to unlocked state
             updateUI()
 
@@ -147,6 +155,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun lockKiosk() {
         kioskPrefs.isLocked = true
+
+        // Re-hide system UI when locking
+        KioskUtil.startKioskMode(this)
+
         updateUI()
         cancelAutoLock()
 
