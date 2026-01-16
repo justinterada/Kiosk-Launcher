@@ -1,19 +1,23 @@
 // ============================================================================
-// Fixed AppWhitelistActivity.kt - All apps start UNCHECKED (disallowed)
+// Fixed AppWhitelistActivity.kt - Proper selection tracking & return results
 // Location: app/src/main/java/com/osamaalek/kiosklauncher/ui/AppWhitelistActivity.kt
 // REPLACE YOUR CURRENT FILE WITH THIS
 // ============================================================================
 
 package com.osamaalek.kiosklauncher.ui
 
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +28,19 @@ class AppWhitelistActivity : AppCompatActivity() {
 
     private lateinit var kioskPrefs: KioskPreferences
     private lateinit var recyclerView: RecyclerView
+    private lateinit var btnDone: Button
+    private lateinit var btnSelectAll: Button
+    private lateinit var btnSelectNone: Button
+
+    // Track selections in memory (don't save until user returns to Settings and clicks Save)
+    private val selectedApps = mutableSetOf<String>()
+
+    // Modern back button handling
+    private val backPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            returnResults()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +48,50 @@ class AppWhitelistActivity : AppCompatActivity() {
 
         kioskPrefs = KioskPreferences(this)
         recyclerView = findViewById(R.id.recyclerView)
+        btnDone = findViewById(R.id.btnDone)
+        btnSelectAll = findViewById(R.id.btnSelectAll)
+        btnSelectNone = findViewById(R.id.btnSelectNone)
+
         recyclerView.layoutManager = LinearLayoutManager(this)
 
+        // Register the modern back button handler
+        onBackPressedDispatcher.addCallback(this, backPressedCallback)
+
+        // Get current selection passed from SettingsActivity
+        val currentSelection = intent.getStringArrayListExtra("CURRENT_SELECTION")
+        if (currentSelection != null) {
+            selectedApps.addAll(currentSelection)
+        }
+
         loadInstalledApps()
+
+        btnDone.setOnClickListener {
+            returnResults()
+        }
+
+        btnSelectAll.setOnClickListener {
+            selectAllApps()
+        }
+
+        btnSelectNone.setOnClickListener {
+            selectedApps.clear()
+            recyclerView.adapter?.notifyDataSetChanged()
+        }
+    }
+
+    private fun selectAllApps() {
+        val adapter = recyclerView.adapter as? AppAdapter
+        adapter?.apps?.forEach { app ->
+            selectedApps.add(app.packageName)
+        }
+        recyclerView.adapter?.notifyDataSetChanged()
+    }
+
+    private fun returnResults() {
+        val resultIntent = Intent()
+        resultIntent.putStringArrayListExtra("SELECTED_APPS", ArrayList(selectedApps))
+        setResult(RESULT_OK, resultIntent)
+        finish()
     }
 
     private fun loadInstalledApps() {
@@ -47,12 +105,14 @@ class AppWhitelistActivity : AppCompatActivity() {
             packageManager.getApplicationLabel(it).toString()
         }
 
-        recyclerView.adapter = AppAdapter(launchableApps, kioskPrefs)
+        recyclerView.adapter = AppAdapter(launchableApps, selectedApps)
+
+        Toast.makeText(this, "Found ${launchableApps.size} apps, ${selectedApps.size} selected", Toast.LENGTH_SHORT).show()
     }
 
     inner class AppAdapter(
-        private val apps: List<ApplicationInfo>,
-        private val prefs: KioskPreferences
+        val apps: List<ApplicationInfo>,
+        private val selectedSet: MutableSet<String>
     ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -76,31 +136,29 @@ class AppWhitelistActivity : AppCompatActivity() {
                 holder.appName.text = packageManager.getApplicationLabel(app)
                 holder.appPackage.text = app.packageName
 
-                // Get current allowed apps set
-                val allowedApps = prefs.allowedApps
-
-                // Apps are UNCHECKED by default (not in the allowed set)
-                holder.checkbox.isChecked = allowedApps.contains(app.packageName)
-
-                // Clear any previous listeners to avoid issues
+                // Remove listener before updating state
                 holder.checkbox.setOnCheckedChangeListener(null)
 
-                // Update the allowed apps when checkbox changes
+                // Set checkbox state based on selected set
+                holder.checkbox.isChecked = selectedSet.contains(app.packageName)
+
+                // Add listener for changes
                 holder.checkbox.setOnCheckedChangeListener { _, isChecked ->
-                    val allowed = prefs.allowedApps.toMutableSet()
                     if (isChecked) {
-                        // Add to allowed list
-                        allowed.add(app.packageName)
+                        selectedSet.add(app.packageName)
                     } else {
-                        // Remove from allowed list
-                        allowed.remove(app.packageName)
+                        selectedSet.remove(app.packageName)
                     }
-                    prefs.allowedApps = allowed
                 }
+
+                // Also allow clicking the whole row
+                holder.itemView.setOnClickListener {
+                    holder.checkbox.toggle()
+                }
+
             } catch (e: Exception) {
-                // Handle any errors gracefully
                 holder.appName.text = app.packageName
-                holder.appPackage.text = "Error loading app info"
+                holder.appPackage.text = "Error loading: ${e.message}"
             }
         }
 

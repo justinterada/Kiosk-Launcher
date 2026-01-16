@@ -1,11 +1,12 @@
 // ============================================================================
-// Updated MainActivity.kt - No Bluetooth restriction, exit kiosk when unlocked
+// Fixed MainActivity.kt - Properly exits lock task mode when unlocking
 // Location: app/src/main/java/com/osamaalek/kiosklauncher/ui/MainActivity.kt
 // REPLACE YOUR CURRENT FILE WITH THIS
 // ============================================================================
 
 package com.osamaalek.kiosklauncher.ui
 
+import android.app.ActivityManager
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
@@ -43,10 +44,19 @@ class MainActivity : AppCompatActivity() {
 
     private var devicePolicyManager: DevicePolicyManager? = null
     private var adminComponent: ComponentName? = null
+    private var activityManager: ActivityManager? = null
 
     // Hidden unlock gesture detection
     private var unlockTapCount = 0
     private val unlockTapHandler = Handler(Looper.getMainLooper())
+
+    // Modern activity result API
+    private val settingsLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // When returning from settings, immediately lock
+        lockKiosk()
+    }
 
     // Modern back button handling
     private val backPressedCallback = object : OnBackPressedCallback(true) {
@@ -68,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
         devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as? DevicePolicyManager
         adminComponent = ComponentName(this, com.osamaalek.kiosklauncher.MyDeviceAdminReceiver::class.java)
+        activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
 
         // Register the modern back button handler
         onBackPressedDispatcher.addCallback(this, backPressedCallback)
@@ -82,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         // Start kiosk mode only when locked
         if (kioskPrefs.isLocked) {
             KioskUtil.startKioskMode(this)
-            startLockTask()
+            startLockTaskIfNeeded()
         }
     }
 
@@ -113,22 +124,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         UnlockDialog(this) {
-            // On successful unlock, go straight to settings
+            // On successful unlock
+            kioskPrefs.isLocked = false
+
+            // CRITICAL: Stop lock task BEFORE opening settings
+            stopLockTaskIfNeeded()
+
+            Toast.makeText(this, "Kiosk Unlocked - Full access enabled", Toast.LENGTH_LONG).show()
+
+            // Now open settings
             openSettings()
         }.show()
     }
 
     private fun openSettings() {
         val intent = Intent(this, SettingsActivity::class.java)
-        startActivityForResult(intent, REQUEST_SETTINGS)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_SETTINGS) {
-            // When returning from settings, immediately lock
-            lockKiosk()
-        }
+        settingsLauncher.launch(intent)
     }
 
     private fun lockKiosk() {
@@ -137,24 +148,43 @@ class MainActivity : AppCompatActivity() {
         cancelAutoLock()
 
         // Start lock task mode when locking
-        startLockTask()
+        startLockTaskIfNeeded()
 
         Toast.makeText(this, "Kiosk Locked", Toast.LENGTH_SHORT).show()
     }
 
-    private fun unlockKiosk() {
-        kioskPrefs.isLocked = false
-
-        // Stop lock task mode when unlocking
+    private fun startLockTaskIfNeeded() {
         try {
-            if (devicePolicyManager?.isDeviceOwnerApp(packageName) == true) {
-                stopLockTask()
+            val isInLockTaskMode = activityManager?.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+
+            if (!isInLockTaskMode) {
+                if (devicePolicyManager?.isDeviceOwnerApp(packageName) == true) {
+                    // Set this app as allowed in lock task mode
+                    devicePolicyManager?.setLockTaskPackages(adminComponent!!, arrayOf(packageName))
+
+                    // Start lock task mode
+                    startLockTask()
+                    Toast.makeText(this, "Lock Task Mode: STARTED", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Not Device Owner - Lock Task unavailable", Toast.LENGTH_SHORT).show()
+                }
             }
         } catch (e: Exception) {
-            // If not in lock task mode, continue anyway
+            Toast.makeText(this, "Lock Task Error: ${e.message}", Toast.LENGTH_LONG).show()
         }
+    }
 
-        updateUI()
+    private fun stopLockTaskIfNeeded() {
+        try {
+            val isInLockTaskMode = activityManager?.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+
+            if (isInLockTaskMode) {
+                stopLockTask()
+                Toast.makeText(this, "Lock Task Mode: STOPPED", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Unlock Error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun updateUI() {
@@ -321,9 +351,5 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         cancelAutoLock()
         unlockTapHandler.removeCallbacksAndMessages(null)
-    }
-
-    companion object {
-        private const val REQUEST_SETTINGS = 1001
     }
 }
