@@ -1,9 +1,3 @@
-// ============================================================================
-// Fixed MainActivity.kt - Properly exits lock task mode when unlocking
-// Location: app/src/main/java/com/osamaalek/kiosklauncher/ui/MainActivity.kt
-// REPLACE YOUR CURRENT FILE WITH THIS
-// ============================================================================
-
 package com.osamaalek.kiosklauncher.ui
 
 import android.app.ActivityManager
@@ -27,7 +21,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.osamaalek.kiosklauncher.R
-import com.osamaalek.kiosklauncher.util.KioskUtil
 import com.osamaalek.kiosklauncher.util.KioskPreferences
 
 class MainActivity : AppCompatActivity() {
@@ -54,7 +47,8 @@ class MainActivity : AppCompatActivity() {
     private val settingsLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // When returning from settings, immediately lock
+        // When returning from settings, update whitelist (removes temp Settings access) and lock
+        updateLockTaskWhitelist(includeSettings = false)
         lockKiosk()
     }
 
@@ -88,11 +82,14 @@ class MainActivity : AppCompatActivity() {
         unlockArea = findViewById(R.id.unlockArea)
 
         setupUnlockGesture()
+
+        // Update whitelist with current settings
+        updateLockTaskWhitelist()
+
         updateUI()
 
-        // Start kiosk mode only when locked
+        // Start lock task only when locked
         if (kioskPrefs.isLocked) {
-            KioskUtil.startKioskMode(this)
             startLockTaskIfNeeded()
         }
     }
@@ -127,10 +124,16 @@ class MainActivity : AppCompatActivity() {
             // On successful unlock
             kioskPrefs.isLocked = false
 
-            // CRITICAL: Stop lock task BEFORE opening settings
+            // CRITICAL: Stop lock task BEFORE anything else
             stopLockTaskIfNeeded()
 
-            Toast.makeText(this, "Kiosk Unlocked - Full access enabled", Toast.LENGTH_LONG).show()
+            // Update UI to unlocked state
+            updateUI()
+
+            Toast.makeText(this, "Unlocked - Pull down status bar now available", Toast.LENGTH_LONG).show()
+
+            // Temporarily add Settings to whitelist before opening
+            updateLockTaskWhitelist(includeSettings = true)
 
             // Now open settings
             openSettings()
@@ -153,37 +156,77 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Kiosk Locked", Toast.LENGTH_SHORT).show()
     }
 
+    private fun updateLockTaskWhitelist(includeSettings: Boolean = false) {
+        if (devicePolicyManager?.isDeviceOwnerApp(packageName) != true) {
+            return
+        }
+
+        try {
+            // Get custom whitelist from preferences
+            val allowedApps = kioskPrefs.allowedApps.toMutableSet()
+
+            // CRITICAL: Always include the kiosk launcher itself
+            allowedApps.add(packageName)
+
+            // Conditionally include Settings based on parameter
+            if (includeSettings) {
+                // Temporarily add Settings when opening preferences
+                allowedApps.add("com.android.settings")
+            } else {
+                // Only include Settings if user explicitly selected it
+                if (kioskPrefs.allowedApps.contains("com.android.settings")) {
+                    allowedApps.add("com.android.settings")
+                }
+            }
+
+            // Update the whitelist
+            devicePolicyManager?.setLockTaskPackages(
+                adminComponent!!,
+                allowedApps.toTypedArray()
+            )
+
+            val settingsStatus = if (includeSettings) "(temp)" else ""
+            Toast.makeText(
+                this,
+                "Whitelist: ${allowedApps.size} apps $settingsStatus",
+                Toast.LENGTH_SHORT
+            ).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Whitelist update error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun startLockTaskIfNeeded() {
         try {
-            val isInLockTaskMode = activityManager?.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+            val lockTaskMode = activityManager?.lockTaskModeState ?: ActivityManager.LOCK_TASK_MODE_NONE
+            val isInLockTaskMode = lockTaskMode != ActivityManager.LOCK_TASK_MODE_NONE
 
             if (!isInLockTaskMode) {
                 if (devicePolicyManager?.isDeviceOwnerApp(packageName) == true) {
-                    // Set this app as allowed in lock task mode
-                    devicePolicyManager?.setLockTaskPackages(adminComponent!!, arrayOf(packageName))
-
-                    // Start lock task mode
                     startLockTask()
-                    Toast.makeText(this, "Lock Task Mode: STARTED", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Lock Task: ENABLED", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "Not Device Owner - Lock Task unavailable", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "⚠️ Not Device Owner - Limited kiosk mode", Toast.LENGTH_SHORT).show()
                 }
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Lock Task Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Lock Task start error: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun stopLockTaskIfNeeded() {
         try {
-            val isInLockTaskMode = activityManager?.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+            val lockTaskMode = activityManager?.lockTaskModeState ?: ActivityManager.LOCK_TASK_MODE_NONE
+            val isInLockTaskMode = lockTaskMode != ActivityManager.LOCK_TASK_MODE_NONE
 
             if (isInLockTaskMode) {
                 stopLockTask()
-                Toast.makeText(this, "Lock Task Mode: STOPPED", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Lock Task: DISABLED - Status bar available", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "ℹ️ Lock task already stopped", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Unlock Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Lock Task stop error: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -339,6 +382,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Update whitelist in case it changed (don't include temp Settings access)
+        if (kioskPrefs.isLocked) {
+            updateLockTaskWhitelist(includeSettings = false)
+        }
         updateUI()
     }
 
