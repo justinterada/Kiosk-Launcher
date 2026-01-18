@@ -15,7 +15,6 @@ object KioskUtil {
     private fun hideSystemUI(activity: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Android 11+
-            activity.window.setDecorFitsSystemWindows(false)
             activity.window.insetsController?.let { controller ->
                 controller.hide(android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars())
                 controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -40,7 +39,6 @@ object KioskUtil {
     fun stopKioskMode(activity: Activity) {
         // Show system UI
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            activity.window.setDecorFitsSystemWindows(true)
             activity.window.insetsController?.show(
                 android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars()
             )

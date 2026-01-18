@@ -1,9 +1,3 @@
-// ============================================================================
-// Fixed SettingsActivity.kt - Proper save behavior & debug info
-// Location: app/src/main/java/com/osamaalek/kiosklauncher/ui/SettingsActivity.kt
-// REPLACE YOUR CURRENT FILE WITH THIS
-// ============================================================================
-
 package com.osamaalek.kiosklauncher.ui
 
 import android.content.Intent
@@ -22,6 +16,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var kioskPrefs: KioskPreferences
     private lateinit var etPin: EditText
     private lateinit var etTimeout: EditText
+    private lateinit var etIconSize: EditText
     private lateinit var btnSave: Button
     private lateinit var btnManageApps: Button
     private lateinit var btnAndroidSettings: Button
@@ -52,6 +47,7 @@ class SettingsActivity : AppCompatActivity() {
 
         etPin = findViewById(R.id.etPin)
         etTimeout = findViewById(R.id.etTimeout)
+        etIconSize = findViewById(R.id.etIconSize)
         btnSave = findViewById(R.id.btnSave)
         btnManageApps = findViewById(R.id.btnManageApps)
         btnAndroidSettings = findViewById(R.id.btnAndroidSettings)
@@ -81,6 +77,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun loadSettings() {
         etPin.setText(kioskPrefs.pin)
         etTimeout.setText(kioskPrefs.lockTimeoutMinutes.toString())
+        etIconSize.setText(kioskPrefs.iconSizeDp.toString())
 
         // Load current saved apps into temp storage
         tempSelectedApps = kioskPrefs.allowedApps.toSet()
@@ -89,15 +86,22 @@ class SettingsActivity : AppCompatActivity() {
     private fun saveSettings() {
         val newPin = etPin.text.toString()
         val timeout = etTimeout.text.toString().toIntOrNull() ?: 5
+        val iconSize = etIconSize.text.toString().toIntOrNull() ?: 80
 
         if (newPin.length < 4) {
             Toast.makeText(this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT).show()
             return
         }
 
+        if (iconSize < 32 || iconSize > 200) {
+            Toast.makeText(this, "Icon size must be between 32 and 200", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // Save all settings at once
         kioskPrefs.pin = newPin
         kioskPrefs.lockTimeoutMinutes = timeout
+        kioskPrefs.iconSizeDp = iconSize
         kioskPrefs.allowedApps = tempSelectedApps
 
         Toast.makeText(this, "Settings saved: ${tempSelectedApps.size} apps allowed", Toast.LENGTH_LONG).show()

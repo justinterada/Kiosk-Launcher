@@ -3,13 +3,11 @@ package com.osamaalek.kiosklauncher.ui
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.text.InputType
-import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.osamaalek.kiosklauncher.R
 import com.osamaalek.kiosklauncher.util.KioskPreferences
 
@@ -19,8 +17,6 @@ class UnlockDialog(
 ) : Dialog(context) {
 
     private lateinit var pinInput: EditText
-    private lateinit var btnUnlock: Button
-    private lateinit var btnCancel: Button
     private val kioskPrefs = KioskPreferences(context)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,13 +26,12 @@ class UnlockDialog(
         setCancelable(false)
         setCanceledOnTouchOutside(false)
 
-        setContentView(R.layout.dialog_unlock)
+        val view = layoutInflater.inflate(R.layout.dialog_unlock, null)
+        setContentView(view)
 
-        pinInput = findViewById(R.id.pinInput)
-        btnUnlock = findViewById(R.id.btnUnlock)
-        btnCancel = findViewById(R.id.btnCancel)
-
-        pinInput.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        pinInput = view.findViewById(R.id.pinInput)
+        val btnUnlock: Button = view.findViewById(R.id.btnUnlock)
+        val btnCancel: Button = view.findViewById(R.id.btnCancel)
 
         btnUnlock.setOnClickListener {
             val enteredPin = pinInput.text.toString()

@@ -59,6 +59,31 @@
             android:textColor="#666"
             android:layout_marginBottom="24dp"/>
 
+        <!-- Icon Size Setting -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="App Icon Size (dp)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/etIconSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="80"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Range: 32-200 (default: 80)"
+            android:textSize="12sp"
+            android:textColor="#666"
+            android:layout_marginBottom="24dp"/>
+
         <!-- Debug Info Button -->
         <Button
             android:id="@+id/btnDebugInfo"

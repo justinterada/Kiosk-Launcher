@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var kioskPrefs: KioskPreferences
     private lateinit var appGrid: GridLayout
     private lateinit var unlockArea: View
+    private lateinit var mainContainer: View
 
     private val autoLockHandler = Handler(Looper.getMainLooper())
     private var autoLockRunnable: Runnable? = null
@@ -81,6 +82,10 @@ class MainActivity : AppCompatActivity() {
         // Initialize views
         appGrid = findViewById(R.id.appGrid)
         unlockArea = findViewById(R.id.unlockArea)
+        mainContainer = findViewById(R.id.mainContainer)
+
+        // Set wallpaper as background
+        setWallpaperBackground()
 
         setupUnlockGesture()
 
@@ -115,6 +120,18 @@ class MainActivity : AppCompatActivity() {
                     unlockTapCount = 0
                 }, 3000)
             }
+        }
+    }
+
+    private fun setWallpaperBackground() {
+        try {
+            val wallpaperManager = android.app.WallpaperManager.getInstance(this)
+            @Suppress("MissingPermission")
+            val wallpaperDrawable = wallpaperManager.drawable
+            mainContainer.background = wallpaperDrawable
+        } catch (e: Exception) {
+            // Fallback to a simple gradient if wallpaper fails
+            mainContainer.setBackgroundColor(0xFFF5F5F5.toInt())
         }
     }
 
@@ -215,6 +232,12 @@ class MainActivity : AppCompatActivity() {
 
             if (!isInLockTaskMode) {
                 if (devicePolicyManager?.isDeviceOwnerApp(packageName) == true) {
+                    // Set lock task features to disable everything
+                    devicePolicyManager?.setLockTaskFeatures(
+                        adminComponent!!,
+                        DevicePolicyManager.LOCK_TASK_FEATURE_NONE
+                    )
+
                     startLockTask()
                     Toast.makeText(this, "Lock Task: ENABLED", Toast.LENGTH_SHORT).show()
                 } else {
@@ -232,6 +255,16 @@ class MainActivity : AppCompatActivity() {
             val isInLockTaskMode = lockTaskMode != ActivityManager.LOCK_TASK_MODE_NONE
 
             if (isInLockTaskMode) {
+                // Before stopping, enable system info to allow status bar
+                if (devicePolicyManager?.isDeviceOwnerApp(packageName) == true) {
+                    devicePolicyManager?.setLockTaskFeatures(
+                        adminComponent!!,
+                        DevicePolicyManager.LOCK_TASK_FEATURE_SYSTEM_INFO or
+                                DevicePolicyManager.LOCK_TASK_FEATURE_HOME or
+                                DevicePolicyManager.LOCK_TASK_FEATURE_NOTIFICATIONS
+                    )
+                }
+
                 stopLockTask()
                 Toast.makeText(this, "Lock Task: DISABLED - Status bar available", Toast.LENGTH_LONG).show()
             } else {
@@ -311,6 +344,12 @@ class MainActivity : AppCompatActivity() {
         try {
             icon.setImageDrawable(packageManager.getApplicationIcon(app))
             name.text = packageManager.getApplicationLabel(app)
+
+            // Apply custom icon size
+            val iconSizeDp = kioskPrefs.iconSizeDp
+            val iconSizePx = (iconSizeDp * resources.displayMetrics.density).toInt()
+            icon.layoutParams.width = iconSizePx
+            icon.layoutParams.height = iconSizePx
 
             iconView.setOnClickListener {
                 launchApp(app.packageName)

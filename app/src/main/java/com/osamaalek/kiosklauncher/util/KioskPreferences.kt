@@ -28,6 +28,7 @@ class KioskPreferences(context: Context) {
         private const val KEY_IS_LOCKED = "is_locked"
         private const val KEY_ALLOWED_APPS = "allowed_apps"
         private const val KEY_LOCK_TIMEOUT = "lock_timeout"
+        private const val KEY_ICON_SIZE = "icon_size"
         private const val DEFAULT_PIN = "0000"
     }
 
@@ -46,6 +47,10 @@ class KioskPreferences(context: Context) {
     var lockTimeoutMinutes: Int
         get() = prefs.getInt(KEY_LOCK_TIMEOUT, 5) // 5 minutes default
         set(value) = prefs.edit().putInt(KEY_LOCK_TIMEOUT, value).apply()
+
+    var iconSizeDp: Int
+        get() = prefs.getInt(KEY_ICON_SIZE, 80) // Default 80dp
+        set(value) = prefs.edit().putInt(KEY_ICON_SIZE, value).apply()
 
     fun isAppAllowed(packageName: String): Boolean {
         val allowed = allowedApps
