@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Build
 import android.view.View
 import android.view.WindowManager
+import android.widget.Toast
 
 object KioskUtil {
 
@@ -45,6 +46,13 @@ object KioskUtil {
         } else {
             @Suppress("DEPRECATION")
             activity.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        }
+    }
+
+    // Helper function to show toasts only if enabled
+    fun showToast(kioskPrefs: KioskPreferences, context: android.content.Context, message: String, length: Int = Toast.LENGTH_SHORT) {
+        if (kioskPrefs.showToasts) {
+            Toast.makeText(context, message, length).show()
         }
     }
 }

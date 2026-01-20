@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.osamaalek.kiosklauncher.R
 import com.osamaalek.kiosklauncher.util.KioskPreferences
+import com.osamaalek.kiosklauncher.util.KioskUtil.showToast
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -48,7 +49,7 @@ class SettingsActivity : AppCompatActivity() {
             val selectedApps = result.data?.getStringArrayListExtra("SELECTED_APPS")
             if (selectedApps != null) {
                 tempSelectedApps = selectedApps.toSet()
-                Toast.makeText(this, "${selectedApps.size} apps selected (not saved yet)", Toast.LENGTH_SHORT).show()
+                showToast(kioskPrefs, this, "${selectedApps.size} apps selected (not saved yet)", Toast.LENGTH_SHORT)
             }
         }
     }
@@ -179,7 +180,7 @@ class SettingsActivity : AppCompatActivity() {
         val iconSize = iconSizes[iconSizeSeekBar.progress]
 
         if (newPin.length < 4) {
-            Toast.makeText(this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT).show()
+            showToast(kioskPrefs, this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT)
             return
         }
 
@@ -191,7 +192,7 @@ class SettingsActivity : AppCompatActivity() {
         kioskPrefs.backgroundColor = tempBackgroundColor
         kioskPrefs.allowedApps = tempSelectedApps
 
-        Toast.makeText(this, "Settings saved: ${tempSelectedApps.size} apps allowed", Toast.LENGTH_LONG).show()
+        showToast(kioskPrefs, this, "Settings saved: ${tempSelectedApps.size} apps allowed", Toast.LENGTH_LONG)
         finish()
     }
 
@@ -200,9 +201,9 @@ class SettingsActivity : AppCompatActivity() {
             val intent = Intent(Settings.ACTION_SETTINGS)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             startActivity(intent)
-            Toast.makeText(this, "Opening Android Settings...", Toast.LENGTH_SHORT).show()
+            showToast(kioskPrefs, this, "Opening Android Settings...", Toast.LENGTH_SHORT)
         } catch (e: Exception) {
-            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            showToast(kioskPrefs, this, "Error: ${e.message}", Toast.LENGTH_LONG)
         }
     }
 
@@ -259,7 +260,7 @@ class SettingsActivity : AppCompatActivity() {
                 val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("Debug Info", debugText)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                showToast(kioskPrefs, this, "Copied to clipboard", Toast.LENGTH_SHORT)
             }
             .show()
     }

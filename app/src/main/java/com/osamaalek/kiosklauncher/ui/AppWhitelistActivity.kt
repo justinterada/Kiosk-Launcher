@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.osamaalek.kiosklauncher.R
 import com.osamaalek.kiosklauncher.util.KioskPreferences
+import com.osamaalek.kiosklauncher.util.KioskUtil.showToast
 
 class AppWhitelistActivity : AppCompatActivity() {
 
@@ -106,7 +107,7 @@ class AppWhitelistActivity : AppCompatActivity() {
 
         recyclerView.adapter = AppAdapter(launchableApps, selectedApps)
 
-        Toast.makeText(this, "Found ${launchableApps.size} apps, ${selectedApps.size} selected", Toast.LENGTH_SHORT).show()
+        showToast(kioskPrefs, this, "Found ${launchableApps.size} apps, ${selectedApps.size} selected", Toast.LENGTH_SHORT)
     }
 
     inner class AppAdapter(

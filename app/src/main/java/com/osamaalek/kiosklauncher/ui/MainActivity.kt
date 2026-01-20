@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.osamaalek.kiosklauncher.R
 import com.osamaalek.kiosklauncher.util.KioskPreferences
 import com.osamaalek.kiosklauncher.util.KioskUtil
+import com.osamaalek.kiosklauncher.util.KioskUtil.showToast
 
 class MainActivity : AppCompatActivity() {
 
@@ -148,7 +149,7 @@ class MainActivity : AppCompatActivity() {
             // Update UI to unlocked state
             updateUI()
 
-            showToast("Unlocked - Pull down status bar now available", Toast.LENGTH_LONG)
+            showToast(kioskPrefs, this, "Unlocked - Pull down status bar now available", Toast.LENGTH_LONG)
 
             // Temporarily add Settings to whitelist before opening
             updateLockTaskWhitelist(includeSettings = true)
@@ -175,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         // Start lock task mode when locking
         startLockTaskIfNeeded()
 
-        showToast("Kiosk Locked")
+        showToast(kioskPrefs, this, "Kiosk Locked")
     }
 
     private fun updateLockTaskWhitelist(includeSettings: Boolean = false) {
@@ -208,13 +209,14 @@ class MainActivity : AppCompatActivity() {
             )
 
             val settingsStatus = if (includeSettings) "(temp)" else ""
-            Toast.makeText(
+            showToast(
+                kioskPrefs,
                 this,
                 "Whitelist: ${allowedApps.size} apps $settingsStatus",
                 Toast.LENGTH_SHORT
-            ).show()
+            )
         } catch (e: Exception) {
-            Toast.makeText(this, "Whitelist update error: ${e.message}", Toast.LENGTH_LONG).show()
+            showToast(kioskPrefs, this, "Whitelist update error: ${e.message}", Toast.LENGTH_LONG)
         }
     }
 
@@ -232,13 +234,13 @@ class MainActivity : AppCompatActivity() {
                     )
 
                     startLockTask()
-                    showToast("Lock Task: ENABLED")
+                    showToast(kioskPrefs, this, "Lock Task: ENABLED")
                 } else {
-                    showToast("⚠️ Not Device Owner - Limited kiosk mode")
+                    showToast(kioskPrefs, this, "⚠️ Not Device Owner - Limited kiosk mode")
                 }
             }
         } catch (e: Exception) {
-            showToast("Lock Task start error: ${e.message}", Toast.LENGTH_LONG)
+            showToast(kioskPrefs, this, "Lock Task start error: ${e.message}", Toast.LENGTH_LONG)
         }
     }
 
@@ -259,12 +261,12 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 stopLockTask()
-                Toast.makeText(this, "Lock Task: DISABLED - Status bar available", Toast.LENGTH_LONG).show()
+                showToast(kioskPrefs, this, "Lock Task: DISABLED - Status bar available", Toast.LENGTH_LONG)
             } else {
-                Toast.makeText(this, "ℹ️ Lock task already stopped", Toast.LENGTH_SHORT).show()
+                showToast(kioskPrefs, this, "ℹ️ Lock task already stopped", Toast.LENGTH_SHORT)
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Lock Task stop error: ${e.message}", Toast.LENGTH_LONG).show()
+            showToast(kioskPrefs, this, "Lock Task stop error: ${e.message}", Toast.LENGTH_LONG)
         }
     }
 
@@ -367,7 +369,7 @@ class MainActivity : AppCompatActivity() {
     private fun launchApp(packageName: String) {
         // When locked, verify app is allowed
         if (kioskPrefs.isLocked && !kioskPrefs.isAppAllowed(packageName)) {
-            Toast.makeText(this, "App not allowed", Toast.LENGTH_SHORT).show()
+            showToast(kioskPrefs, this, "App not allowed", Toast.LENGTH_SHORT)
             return
         }
 
@@ -377,10 +379,10 @@ class MainActivity : AppCompatActivity() {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
             } else {
-                Toast.makeText(this, "Cannot launch app", Toast.LENGTH_SHORT).show()
+                showToast(kioskPrefs, this, "Cannot launch app", Toast.LENGTH_SHORT)
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Error launching app: ${e.message}", Toast.LENGTH_SHORT).show()
+            showToast(kioskPrefs, this, "Error launching app: ${e.message}", Toast.LENGTH_SHORT)
         }
     }
 
@@ -444,10 +446,5 @@ class MainActivity : AppCompatActivity() {
         unlockTapHandler.removeCallbacksAndMessages(null)
     }
 
-    // Helper function to show toasts only if enabled
-    private fun showToast(message: String, length: Int = Toast.LENGTH_SHORT) {
-        if (kioskPrefs.showToasts) {
-            Toast.makeText(this, message, length).show()
-        }
-    }
+
 }
