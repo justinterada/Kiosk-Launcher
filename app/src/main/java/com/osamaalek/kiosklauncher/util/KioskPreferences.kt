@@ -29,6 +29,8 @@ class KioskPreferences(context: Context) {
         private const val KEY_ALLOWED_APPS = "allowed_apps"
         private const val KEY_LOCK_TIMEOUT = "lock_timeout"
         private const val KEY_ICON_SIZE = "icon_size"
+        private const val KEY_SHOW_TOASTS = "show_toasts"
+        private const val KEY_BACKGROUND_COLOR = "background_color"
         private const val DEFAULT_PIN = "0000"
     }
 
@@ -51,6 +53,14 @@ class KioskPreferences(context: Context) {
     var iconSizeDp: Int
         get() = prefs.getInt(KEY_ICON_SIZE, 80) // Default 80dp
         set(value) = prefs.edit().putInt(KEY_ICON_SIZE, value).apply()
+
+    var showToasts: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_TOASTS, true) // Default: show toasts
+        set(value) = prefs.edit().putBoolean(KEY_SHOW_TOASTS, value).apply()
+
+    var backgroundColor: Int
+        get() = prefs.getInt(KEY_BACKGROUND_COLOR, 0xFFF5F5F5.toInt()) // Default: light gray
+        set(value) = prefs.edit().putInt(KEY_BACKGROUND_COLOR, value).apply()
 
     fun isAppAllowed(packageName: String): Boolean {
         val allowed = allowedApps

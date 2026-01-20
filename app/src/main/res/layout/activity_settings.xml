@@ -59,29 +59,109 @@
             android:textColor="#666"
             android:layout_marginBottom="24dp"/>
 
-        <!-- Icon Size Setting -->
+        <!-- Icon Size Slider -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="App Icon Size (dp)"
+            android:text="App Icon Size"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
 
-        <EditText
-            android:id="@+id/etIconSize"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="80"
-            android:layout_marginBottom="16dp"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <ImageView
+                android:id="@+id/iconPreview"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@mipmap/ic_launcher"
+                android:scaleType="fitCenter"
+                android:layout_marginEnd="16dp"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/iconSizeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="80dp"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp"/>
+
+                <SeekBar
+                    android:id="@+id/iconSizeSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Small"
+                        android:textSize="10sp"
+                        android:textColor="#666"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Large"
+                        android:textSize="10sp"
+                        android:textColor="#666"
+                        android:gravity="end"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Range: 32-200 (default: 80)"
+            android:text="Options: 48, 64, 80, 96, 128, 160 dp"
             android:textSize="12sp"
             android:textColor="#666"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Background Color -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Background Color"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnBackgroundColor"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Choose Color"
+            android:textSize="16sp"
+            android:layout_marginBottom="24dp"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <!-- Show Toasts Toggle -->
+        <CheckBox
+            android:id="@+id/cbShowToasts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Show notification toasts"
+            android:textSize="16sp"
+            android:checked="true"
             android:layout_marginBottom="24dp"/>
 
         <!-- Debug Info Button -->

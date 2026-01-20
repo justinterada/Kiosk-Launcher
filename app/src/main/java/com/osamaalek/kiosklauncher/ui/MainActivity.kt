@@ -124,15 +124,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setWallpaperBackground() {
-        try {
-            val wallpaperManager = android.app.WallpaperManager.getInstance(this)
-            @Suppress("MissingPermission")
-            val wallpaperDrawable = wallpaperManager.drawable
-            mainContainer.background = wallpaperDrawable
-        } catch (e: Exception) {
-            // Fallback to a simple gradient if wallpaper fails
-            mainContainer.setBackgroundColor(0xFFF5F5F5.toInt())
-        }
+        // Use saved background color instead of wallpaper
+        mainContainer.setBackgroundColor(kioskPrefs.backgroundColor)
     }
 
     private fun showUnlockDialog() {
@@ -155,7 +148,7 @@ class MainActivity : AppCompatActivity() {
             // Update UI to unlocked state
             updateUI()
 
-            Toast.makeText(this, "Unlocked - Pull down status bar now available", Toast.LENGTH_LONG).show()
+            showToast("Unlocked - Pull down status bar now available", Toast.LENGTH_LONG)
 
             // Temporarily add Settings to whitelist before opening
             updateLockTaskWhitelist(includeSettings = true)
@@ -182,7 +175,7 @@ class MainActivity : AppCompatActivity() {
         // Start lock task mode when locking
         startLockTaskIfNeeded()
 
-        Toast.makeText(this, "Kiosk Locked", Toast.LENGTH_SHORT).show()
+        showToast("Kiosk Locked")
     }
 
     private fun updateLockTaskWhitelist(includeSettings: Boolean = false) {
@@ -232,20 +225,20 @@ class MainActivity : AppCompatActivity() {
 
             if (!isInLockTaskMode) {
                 if (devicePolicyManager?.isDeviceOwnerApp(packageName) == true) {
-                    // Set lock task features to disable everything
+                    // Set lock task features to allow power button
                     devicePolicyManager?.setLockTaskFeatures(
                         adminComponent!!,
-                        DevicePolicyManager.LOCK_TASK_FEATURE_NONE
+                        DevicePolicyManager.LOCK_TASK_FEATURE_GLOBAL_ACTIONS
                     )
 
                     startLockTask()
-                    Toast.makeText(this, "Lock Task: ENABLED", Toast.LENGTH_SHORT).show()
+                    showToast("Lock Task: ENABLED")
                 } else {
-                    Toast.makeText(this, "⚠️ Not Device Owner - Limited kiosk mode", Toast.LENGTH_SHORT).show()
+                    showToast("⚠️ Not Device Owner - Limited kiosk mode")
                 }
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Lock Task start error: ${e.message}", Toast.LENGTH_LONG).show()
+            showToast("Lock Task start error: ${e.message}", Toast.LENGTH_LONG)
         }
     }
 
@@ -449,5 +442,12 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         cancelAutoLock()
         unlockTapHandler.removeCallbacksAndMessages(null)
+    }
+
+    // Helper function to show toasts only if enabled
+    private fun showToast(message: String, length: Int = Toast.LENGTH_SHORT) {
+        if (kioskPrefs.showToasts) {
+            Toast.makeText(this, message, length).show()
+        }
     }
 }
