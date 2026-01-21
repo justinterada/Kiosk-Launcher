@@ -473,5 +473,9 @@ class MainActivity : AppCompatActivity() {
         return columns
     }
 
-
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Recalculate and update UI when orientation changes
+        updateUI()
+    }
 }
