@@ -105,6 +105,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun calculateColumnCount(): Int {
+        // Get screen width in pixels
+        val displayMetrics = resources.displayMetrics
+        val screenWidthPx = displayMetrics.widthPixels
+
+        // Account for ScrollView padding (16dp each side = 32dp total)
+        val scrollViewPaddingPx = (32 * displayMetrics.density).toInt()
+        val availableWidthPx = screenWidthPx - scrollViewPaddingPx
+
+        // Calculate item width: icon size + padding + margins
+        val iconSizeDp = kioskPrefs.iconSizeDp
+        val iconSizePx = (iconSizeDp * displayMetrics.density).toInt()
+
+        // Add padding from item layout (8dp each side = 16dp total)
+        val itemPaddingPx = (16 * displayMetrics.density).toInt()
+
+        // GridLayout useDefaultMargins adds spacing between items
+        val gridMarginPx = (8 * displayMetrics.density).toInt()
+
+        // Total width per item (icon + padding + half margin on each side)
+        val itemWidthPx = iconSizePx + itemPaddingPx + gridMarginPx
+
+        // Calculate how many columns fit, minimum 2, maximum 8
+        val columns = (availableWidthPx / itemWidthPx).coerceIn(2, 8)
+
+        return columns
+    }
+
     private fun setupUnlockGesture() {
         // Hidden unlock: tap the unlock area 5 times quickly
         unlockArea.setOnClickListener {
@@ -291,6 +319,7 @@ class MainActivity : AppCompatActivity() {
 
         val allowedPackages = kioskPrefs.allowedApps
         if (allowedPackages.isEmpty()) {
+            // If no apps configured, show a message
             showEmptyMessage("No apps configured. Unlock to add apps.")
             return
         }
@@ -318,8 +347,10 @@ class MainActivity : AppCompatActivity() {
         // Set dynamic column count based on screen width
         appGrid.columnCount = calculateColumnCount()
 
+        // Show ALL apps (system and user) when unlocked
         val apps = packageManager.getInstalledApplications(0)
             .filter {
+                // Show all apps that have a launcher intent
                 packageManager.getLaunchIntentForPackage(it.packageName) != null
             }
             .sortedBy { packageManager.getApplicationLabel(it).toString() }
@@ -435,6 +466,8 @@ class MainActivity : AppCompatActivity() {
         if (kioskPrefs.isLocked) {
             updateLockTaskWhitelist(includeSettings = false)
         }
+        // Refresh background color in case it changed in settings
+        setWallpaperBackground()
         updateUI()
     }
 
@@ -449,32 +482,19 @@ class MainActivity : AppCompatActivity() {
         unlockTapHandler.removeCallbacksAndMessages(null)
     }
 
-    private fun calculateColumnCount(): Int {
-        // Get screen width in pixels
-        val displayMetrics = resources.displayMetrics
-        val screenWidthPx = displayMetrics.widthPixels
-
-        // Calculate item width: icon size + padding
-        val iconSizeDp = kioskPrefs.iconSizeDp
-        val iconSizePx = (iconSizeDp * displayMetrics.density).toInt()
-
-        // Add padding from item layout (8dp each side = 16dp total)
-        val itemPaddingPx = (16 * displayMetrics.density).toInt()
-
-        // Add grid margin/spacing (approximate 8dp per item)
-        val gridSpacingPx = (8 * displayMetrics.density).toInt()
-
-        // Total width per item
-        val itemWidthPx = iconSizePx + itemPaddingPx + gridSpacingPx
-
-        // Calculate how many columns fit, minimum 2, maximum 8
-        val columns = (screenWidthPx / itemWidthPx).coerceIn(2, 8)
-
-        return columns
-    }
-
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
+
+        // Force recalculation of column count on orientation change
+        when (newConfig.orientation) {
+            android.content.res.Configuration.ORIENTATION_LANDSCAPE -> {
+                showToast(kioskPrefs, this, "Landscape: ${calculateColumnCount()} columns", Toast.LENGTH_SHORT)
+            }
+            android.content.res.Configuration.ORIENTATION_PORTRAIT -> {
+                showToast(kioskPrefs, this, "Portrait: ${calculateColumnCount()} columns", Toast.LENGTH_SHORT)
+            }
+        }
+
         // Recalculate and update UI when orientation changes
         updateUI()
     }
