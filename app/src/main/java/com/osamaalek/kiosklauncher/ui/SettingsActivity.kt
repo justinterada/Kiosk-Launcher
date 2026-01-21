@@ -72,8 +72,8 @@ class SettingsActivity : AppCompatActivity() {
         btnAndroidSettings = findViewById(R.id.btnAndroidSettings)
         btnDebugInfo = findViewById(R.id.btnDebugInfo)
 
-        loadSettings()
         setupIconSizeSlider()
+        loadSettings()
 
         btnSave.setOnClickListener {
             saveSettings()
@@ -132,9 +132,7 @@ class SettingsActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
-        // Initialize
-        iconSizeSeekBar.progress = iconSizes.indexOf(80)
+        // Don't set initial progress here - loadSettings() will do it
     }
 
     private fun showColorPicker() {

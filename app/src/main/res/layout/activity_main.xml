@@ -22,12 +22,20 @@
     </ScrollView>
 
     <!-- Hidden unlock area - tap 5 times in top-right corner -->
-    <View
-        android:id="@+id/unlockArea"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:background="@android:color/transparent" />
+    <!-- Using FrameLayout overlay so it doesn't block grid layout -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false">
+
+        <View
+            android:id="@+id/unlockArea"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="top|end"
+            android:background="@android:color/transparent" />
+
+    </FrameLayout>
 
 </RelativeLayout>
