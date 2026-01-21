@@ -136,6 +136,16 @@
             android:textColor="#666"
             android:layout_marginBottom="24dp"/>
 
+        <!-- Show Toasts Toggle -->
+        <CheckBox
+            android:id="@+id/cbShowToasts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Show notification toasts"
+            android:textSize="16sp"
+            android:checked="true"
+            android:layout_marginBottom="24dp"/>
+
         <!-- Background Color -->
         <TextView
             android:layout_width="wrap_content"
@@ -153,16 +163,6 @@
             android:textSize="16sp"
             android:layout_marginBottom="24dp"
             style="?attr/materialButtonOutlinedStyle"/>
-
-        <!-- Show Toasts Toggle -->
-        <CheckBox
-            android:id="@+id/cbShowToasts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Show notification toasts"
-            android:textSize="16sp"
-            android:checked="true"
-            android:layout_marginBottom="24dp"/>
 
         <!-- Debug Info Button -->
         <Button

@@ -152,8 +152,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("MissingPermission")
     private fun setWallpaperBackground() {
-        // Use saved background color instead of wallpaper
+        // Use saved background color
         mainContainer.setBackgroundColor(kioskPrefs.backgroundColor)
     }
 
@@ -374,6 +375,16 @@ class MainActivity : AppCompatActivity() {
             icon.setImageDrawable(packageManager.getApplicationIcon(app))
             name.text = packageManager.getApplicationLabel(app)
 
+            // Auto-contrast text color based on background
+            val bgColor = kioskPrefs.backgroundColor
+            val r = android.graphics.Color.red(bgColor)
+            val g = android.graphics.Color.green(bgColor)
+            val b = android.graphics.Color.blue(bgColor)
+            val brightness = (r * 299 + g * 587 + b * 114) / 1000
+
+            // Use white text on dark backgrounds, black text on light backgrounds
+            name.setTextColor(if (brightness < 128) android.graphics.Color.WHITE else android.graphics.Color.BLACK)
+
             // Apply custom icon size
             val iconSizeDp = kioskPrefs.iconSizeDp
             val iconSizePx = (iconSizeDp * resources.displayMetrics.density).toInt()
@@ -391,11 +402,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showEmptyMessage(message: String) {
+        // Auto-contrast text color based on background
+        val bgColor = kioskPrefs.backgroundColor
+        val r = android.graphics.Color.red(bgColor)
+        val g = android.graphics.Color.green(bgColor)
+        val b = android.graphics.Color.blue(bgColor)
+        val brightness = (r * 299 + g * 587 + b * 114) / 1000
+        val textColor = if (brightness < 128) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+
         val textView = TextView(this).apply {
             text = message
             textSize = 18f
             setPadding(32, 32, 32, 32)
             gravity = android.view.Gravity.CENTER
+            setTextColor(textColor)
         }
         appGrid.addView(textView)
     }

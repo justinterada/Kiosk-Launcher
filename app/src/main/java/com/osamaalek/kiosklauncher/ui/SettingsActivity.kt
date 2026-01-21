@@ -1,10 +1,8 @@
 package com.osamaalek.kiosklauncher.ui
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
-import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -35,7 +33,7 @@ class SettingsActivity : AppCompatActivity() {
 
     // Temporary storage for selected apps (not saved until user clicks Save)
     private var tempSelectedApps: Set<String> = emptySet()
-    private var tempBackgroundColor: Int = 0xFFF5F5F5.toInt()
+    private var tempBackgroundColor: Int = 0xFF303030.toInt()
 
     // Predefined icon sizes
     private val iconSizes = listOf(48, 64, 80, 96, 128, 160)
@@ -108,7 +106,7 @@ class SettingsActivity : AppCompatActivity() {
         // Load current saved apps into temp storage
         tempSelectedApps = kioskPrefs.allowedApps.toSet()
 
-        // Set icon size slider
+        // Set icon size slider to saved value
         val currentSize = kioskPrefs.iconSizeDp
         val index = iconSizes.indexOfFirst { it >= currentSize }.takeIf { it >= 0 } ?: (iconSizes.size - 1)
         iconSizeSeekBar.progress = index
@@ -132,21 +130,22 @@ class SettingsActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-        // Don't set initial progress here - loadSettings() will do it
+
+        // Don't initialize here - let loadSettings() set the correct value
     }
 
     private fun showColorPicker() {
         val colors = listOf(
-            0xFFFFFFFF.toInt() to "White",
-            0xFFF5F5F5.toInt() to "Light Gray",
-            0xFFE0E0E0.toInt() to "Gray",
-            0xFF303030.toInt() to "Dark Gray",
             0xFF000000.toInt() to "Black",
+            0xFF1A1A1A.toInt() to "Very Dark Gray",
+            0xFF303030.toInt() to "Dark Gray",
+            0xFF606060.toInt() to "Medium Gray",
+            0xFF909090.toInt() to "Light Gray",
+            0xFFF5F5F5.toInt() to "Very Light Gray",
+            0xFFFFFFFF.toInt() to "White",
             0xFF1976D2.toInt() to "Blue",
             0xFF388E3C.toInt() to "Green",
-            0xFFD32F2F.toInt() to "Red",
-            0xFFF57C00.toInt() to "Orange",
-            0xFF7B1FA2.toInt() to "Purple"
+            0xFFD32F2F.toInt() to "Red"
         )
 
         val colorNames = colors.map { it.second }.toTypedArray()
@@ -164,12 +163,12 @@ class SettingsActivity : AppCompatActivity() {
         btnBackgroundColor.setBackgroundColor(tempBackgroundColor)
 
         // Set text color based on background brightness
-        val r = Color.red(tempBackgroundColor)
-        val g = Color.green(tempBackgroundColor)
-        val b = Color.blue(tempBackgroundColor)
+        val r = android.graphics.Color.red(tempBackgroundColor)
+        val g = android.graphics.Color.green(tempBackgroundColor)
+        val b = android.graphics.Color.blue(tempBackgroundColor)
         val brightness = (r * 299 + g * 587 + b * 114) / 1000
 
-        btnBackgroundColor.setTextColor(if (brightness > 128) Color.BLACK else Color.WHITE)
+        btnBackgroundColor.setTextColor(if (brightness > 128) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
     }
 
     private fun saveSettings() {

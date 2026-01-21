@@ -59,7 +59,7 @@ class KioskPreferences(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_SHOW_TOASTS, value).apply()
 
     var backgroundColor: Int
-        get() = prefs.getInt(KEY_BACKGROUND_COLOR, 0xFFF5F5F5.toInt()) // Default: light gray
+        get() = prefs.getInt(KEY_BACKGROUND_COLOR, 0xFF303030.toInt()) // Default: dark gray
         set(value) = prefs.edit().putInt(KEY_BACKGROUND_COLOR, value).apply()
 
     fun isAppAllowed(packageName: String): Boolean {
