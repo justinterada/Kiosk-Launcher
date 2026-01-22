@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
@@ -11,6 +10,15 @@
         <entry key="app/src/main/res/layout/holder_app.xml" value="0.2702009405728944" />
         <entry key="app/src/main/res/xml/device_admin_conf.xml" value="0.2697734074390765" />
       </map>
+    </option>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="temurin-17" project-jdk-type="JavaSDK" />
+  <component name="VisualizationToolProject">
+    <option name="state">
+      <ProjectState>
+        <option name="scale" value="0.08341308593749999" />
+      </ProjectState>
     </option>
   </component>
 </project>

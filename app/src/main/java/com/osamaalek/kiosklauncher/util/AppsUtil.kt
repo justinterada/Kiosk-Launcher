@@ -21,8 +21,7 @@ class AppsUtil {
                 val app = AppInfo(
                     ri.loadLabel(packageManager),
                     ri.activityInfo.packageName,
-                    ri.activityInfo.loadIcon(packageManager)
-                )
+                    ri.activityInfo.loadIcon(packageManager))
                 appsList.add(app)
             }
             return appsList

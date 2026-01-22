@@ -4,41 +4,75 @@ plugins {
 }
 
 android {
-    namespace 'com.osamaalek.kiosklauncher'
-    compileSdk 32
+    namespace = 'com.osamaalek.kiosklauncher'
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.osamaalek.kiosklauncher"
-        minSdk 23
-        targetSdk 32
+        minSdk 28
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled = true
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("/Users/jterada/justins-android-keystore.keystore")
+            storePassword "password"
+            keyAlias "justins-android-keystore"
+            keyPassword "password"
+        }
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
         release {
+            signingConfig = signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
+}
+
+// kotlinOptions goes OUTSIDE the android block for older Gradle versions
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 }
 
 dependencies {
-
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.6.0-alpha01'
-    implementation 'com.google.android.material:material:1.6.1'
+    // Core AndroidX
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // Material Design
+    implementation 'com.google.android.material:material:1.12.0'
+
+    // Activity KTX for OnBackPressedDispatcher
+    implementation 'androidx.activity:activity-ktx:1.9.3'
+
+    // For lock/unlock features
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
+    // MultiDex support
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    // Test dependencies
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }

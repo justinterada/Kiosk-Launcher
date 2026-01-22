@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚙️ Kiosk Settings"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- PIN Setting -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unlock PIN"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/etPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberPassword"
+            android:hint="Enter 4-6 digit PIN"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Auto-lock Timeout -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auto-lock Timeout (minutes)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/etTimeout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="5"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set to 0 to disable auto-lock"
+            android:textSize="12sp"
+            android:textColor="#666"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Icon Size Slider -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="App Icon Size"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <ImageView
+                android:id="@+id/iconPreview"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@mipmap/ic_launcher"
+                android:scaleType="fitCenter"
+                android:layout_marginEnd="16dp"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/iconSizeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="80dp"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp"/>
+
+                <SeekBar
+                    android:id="@+id/iconSizeSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Small"
+                        android:textSize="10sp"
+                        android:textColor="#666"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Large"
+                        android:textSize="10sp"
+                        android:textColor="#666"
+                        android:gravity="end"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Options: 48, 64, 80, 96, 128, 160 dp"
+            android:textSize="12sp"
+            android:textColor="#666"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Show Toasts Toggle -->
+        <CheckBox
+            android:id="@+id/cbShowToasts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Show notification toasts"
+            android:textSize="16sp"
+            android:checked="false"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Background Color -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Background Color"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnBackgroundColor"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Choose Color"
+            android:textSize="16sp"
+            android:layout_marginBottom="24dp"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <!-- Debug Info Button -->
+        <Button
+            android:id="@+id/btnDebugInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🐛 Debug Info"
+            android:textSize="16sp"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <!-- Android Settings Button -->
+        <Button
+            android:id="@+id/btnAndroidSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔧 Android Settings"
+            android:textSize="16sp"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <!-- Manage Apps Button -->
+        <Button
+            android:id="@+id/btnManageApps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📱 Manage Allowed Apps"
+            android:textSize="16sp"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <!-- Save Button -->
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💾 Save Settings &amp; Lock"
+            android:textSize="18sp"
+            android:padding="16dp"/>
+
+    </LinearLayout>
+</ScrollView>
