@@ -325,6 +325,8 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        showToast(kioskPrefs, this, "Loading ${allowedPackages.size} allowed apps", Toast.LENGTH_SHORT)
+
         val apps = packageManager.getInstalledApplications(0)
             .filter {
                 allowedPackages.contains(it.packageName) &&
@@ -333,9 +335,11 @@ class MainActivity : AppCompatActivity() {
             .sortedBy { packageManager.getApplicationLabel(it).toString() }
 
         if (apps.isEmpty()) {
-            showEmptyMessage("No allowed apps installed")
+            showEmptyMessage("No allowed apps installed. Allowed: ${allowedPackages.joinToString(", ")}")
             return
         }
+
+        showToast(kioskPrefs, this, "Found ${apps.size} launchable apps", Toast.LENGTH_SHORT)
 
         apps.forEach { app ->
             addAppIcon(app)
@@ -391,9 +395,20 @@ class MainActivity : AppCompatActivity() {
             icon.layoutParams.width = iconSizePx
             icon.layoutParams.height = iconSizePx
 
+            // Scale text size based on icon size (range: 10sp to 18sp)
+            // 48dp icon -> 10sp, 80dp icon -> 12sp, 160dp icon -> 18sp
+            val textSizeSp = (10 + (iconSizeDp - 48) * 8 / 112).coerceIn(10, 18)
+            name.textSize = textSizeSp.toFloat()
+
             iconView.setOnClickListener {
                 launchApp(app.packageName)
             }
+
+            // Explicitly set GridLayout params to ensure proper layout
+            val params = GridLayout.LayoutParams()
+            params.width = GridLayout.LayoutParams.WRAP_CONTENT
+            params.height = GridLayout.LayoutParams.WRAP_CONTENT
+            iconView.layoutParams = params
 
             appGrid.addView(iconView)
         } catch (e: Exception) {

@@ -55,7 +55,7 @@ class KioskPreferences(context: Context) {
         set(value) = prefs.edit().putInt(KEY_ICON_SIZE, value).apply()
 
     var showToasts: Boolean
-        get() = prefs.getBoolean(KEY_SHOW_TOASTS, true) // Default: show toasts
+        get() = prefs.getBoolean(KEY_SHOW_TOASTS, false) // Default: don't show toasts
         set(value) = prefs.edit().putBoolean(KEY_SHOW_TOASTS, value).apply()
 
     var backgroundColor: Int

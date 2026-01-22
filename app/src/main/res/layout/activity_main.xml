@@ -20,8 +20,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:alignmentMode="alignMargins"
-                android:columnOrderPreserved="false"
+                android:alignmentMode="alignBounds"
+                android:rowCount="1000"
+                android:columnOrderPreserved="true"
                 android:useDefaultMargins="true" />
 
         </FrameLayout>
