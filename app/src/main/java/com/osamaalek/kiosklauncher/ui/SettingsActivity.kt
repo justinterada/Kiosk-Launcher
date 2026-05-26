@@ -189,6 +189,9 @@ class SettingsActivity : AppCompatActivity() {
         kioskPrefs.backgroundColor = tempBackgroundColor
         kioskPrefs.allowedApps = tempSelectedApps
 
+        // IMPORTANT: Lock the device when saving settings
+        kioskPrefs.isLocked = true
+
         showToast(kioskPrefs, this, "Settings saved: ${tempSelectedApps.size} apps allowed", Toast.LENGTH_LONG)
         finish()
     }
